@@ -1,0 +1,15 @@
+CLIENT_ID: "{CLIENT_ID}"
+CLIENT_SECRET: "{CLIENT_SECRET}"
+SCOPE: "Files.ReadWrite.All openid User.ReadBasic.All User.ReadWrite profile email"
+REDIRECT_URL: "{REDIRECT_URL}"
+TENANT_ID: "{TENANT_ID}"
+REFRESH_TOKEN: "{REFRESH_TOKEN}"
+EXPIRY: 3599
+TOKEN_TYPE: "Bearer"
+UPLOAD_FOLDER_PATH: "/"
+REFESH_API_ENDPOINT: "https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token"
+UPLOAD_API_ENDPOINT: "https://graph.microsoft.com/v1.0/me/drive/root:{UPLOAD_FOLDER_PATH}/{FILE_NAME}:/createUploadSession"
+SHARE_API_ENDPOINT: "https://graph.microsoft.com/v1.0/me/drive/items/{UPLOADED_FILE_ID}/createLink"
+FRAG_SIZE: 62259200
+SHARE_BODY_JSON: "{ \"type\": \"view\", \"scope\": \"anonymous\" }"
+UPLOAD_BODY_JSON: "{\"item\":{\"@microsoft.graph.conflictBehavior\":\"rename\",\"name\":\"{FILE_NAME}\"}}"
