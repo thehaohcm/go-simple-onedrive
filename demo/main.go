@@ -5,36 +5,23 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/thehaohcm/go-simple-onedrive/token"
+	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/upload"
 
 	"github.com/goh-chunlin/go-onedrive/onedrive"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/microsoft"
 )
 
 var (
-	client    *onedrive.Client
-	oauthConf = &oauth2.Config{
-		ClientID:     "fbe1ffd1-93ca-4aaf-a121-656849b2cfd3",
-		ClientSecret: ".4.PpG17mF_TyQ3~2wWRwZFTbOU_5aq3Gf",
-		RedirectURL:  "http://localhost",
-		Scopes:       []string{"Files.ReadWrite.All", "Sites.ReadWrite.All", "openid", "User.ReadBasic.All", "User.ReadWrite", "profile", "email"},
-		Endpoint:     microsoft.AzureADEndpoint(token.Tenant),
-	}
+	client           *onedrive.Client
 	oauthStateString = "12345"
 )
 
 func getInstance() (context.Context, *onedrive.Client) {
 	// token.RefreshToken()
 	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token.SavedToken.AccessToken},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-
+	tc := oauth2.NewClient(ctx, config.OneDriveClient)
 	client = onedrive.NewClient(tc)
-
 	return ctx, client
 }
 
@@ -43,7 +30,7 @@ func main() {
 	if len(args) == 0 || len(args) > 1 {
 		fmt.Println("Something is wrong, please add a file path as an argument...")
 	}
-	filePath := args[1]
+	filePath := args[0]
 	upload.UploadFile(filePath)
 	ctx, client := getInstance()
 
