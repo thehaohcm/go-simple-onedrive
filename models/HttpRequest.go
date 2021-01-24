@@ -1,8 +1,6 @@
 package models
 
 import (
-	"fmt"
-
 	"github.com/thehaohcm/go-simple-onedrive/enums"
 )
 
@@ -15,7 +13,6 @@ type HttpRequest struct {
 
 func InitHttpRequest(httpMethod enums.HttpRequestMethod, url string, body string, headers []*HttpHeader) *HttpRequest {
 	var httpRequest HttpRequest
-	fmt.Println("method: " + httpMethod)
 	httpRequest.HttpMethod = httpMethod
 	httpRequest.Url = url
 	httpRequest.Body = body

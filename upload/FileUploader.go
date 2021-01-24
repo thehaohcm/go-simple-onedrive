@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/thehaohcm/go-simple-onedrive/config"
@@ -21,7 +22,7 @@ import (
 var (
 	blockSize              = 0
 	fileBytes              []byte
-	fileSize               = 0
+	fileSize               int64 = 0
 	uploadFinishedResponse models.UploadFinishedResponse
 )
 
@@ -29,7 +30,7 @@ func ShareLinkFunc(uploadFinishedResponse *models.UploadFinishedResponse) {
 	token.RefreshToken()
 	if uploadFinishedResponse != nil && uploadFinishedResponse.Id != "" {
 		//share the item's link
-		sharedLinkAPIEndpoint := "https://graph.microsoft.com/v1.0/me/drive/items/" + uploadFinishedResponse.Id + "/createLink"
+		sharedLinkAPIEndpoint := strings.Replace(config.ShareAPIEndPoint, "{UPLOADED_FILE_ID}", uploadFinishedResponse.Id, 1)
 		var httpHeaders [](*models.HttpHeader)
 		httpHeaders = append(httpHeaders, models.InitHttpHeader("Content-Type", "application/json"))
 		httpRequest := models.InitHttpRequest(enums.POST, sharedLinkAPIEndpoint, config.ShareBodyJSON, httpHeaders)
@@ -38,41 +39,45 @@ func ShareLinkFunc(uploadFinishedResponse *models.UploadFinishedResponse) {
 		utils.HandleHttpRequestForUploading(httpRequest, &sharedLinkResponse)
 
 		if sharedLinkResponse.Link.WebUrl != "" {
-			fmt.Println("The file " + uploadFinishedResponse.Name + " has been shared via URL: " + sharedLinkResponse.Link.WebUrl + " for every one")
+			fmt.Println("The file " + uploadFinishedResponse.Name + " (size: " + utils.GetReadableFileCapacity(fileSize) + ") has been shared via URL: " + sharedLinkResponse.Link.WebUrl + " for every one")
 		}
 	}
 }
 
 func UploadFile(localFilePath string) {
-
-	token.RefreshToken()
 	fileName := filepath.Base(localFilePath)
 
 	fi, err := os.Open(localFilePath)
 	fileBytes, err = ioutil.ReadFile(localFilePath)
 	if err != nil {
-		fmt.Println("Error 2: " + err.Error())
-		return
+		panic(err)
 	}
 
 	//get file size
 	fileData, err := fi.Stat()
 	if err != nil {
-		fmt.Println("Error 2: " + err.Error())
-		return
+		panic(err)
 	}
-	fileSize = int(fileData.Size())
+	fileSize = fileData.Size()
 
 	// read file into bytes
-	blockSize := (fileSize + config.FragSize - 1) / config.FragSize
+	blockSize = 1
+	if int(fileSize) > config.FragSize {
+		blockSize = (int(fileSize) + config.FragSize - 1) / config.FragSize
+	}
 
-	sessionUrL := "https://graph.microsoft.com/v1.0/me/drive/root:" + config.UploadFolderPath + fileName + ":/createUploadSession"
+	fmt.Println("blockSize: " + strconv.Itoa(blockSize))
+
+	sessionURL := strings.Replace(config.UploadAPIEndPoint, "{UPLOAD_FOLDER_PATH}", config.UploadFolderPath, 1)
+	sessionURL = strings.Replace(sessionURL, "{FILE_NAME}", fileName, 1)
 	//Create an Upload Session
 	// fmt.Println("Creating an Uploading Session, with token: " + token.SavedToken.AccessToken)
-	var payload = []byte(`{"item":{"@microsoft.graph.conflictBehavior":"rename","name":"` + fileName + `"}}`)
-	uploadSessionRequest, _ := http.NewRequest("POST", sessionUrL, bytes.NewBuffer(payload))
+	var payload = []byte(strings.Replace(config.UploadBodyJSON, "{FILE_NAME}", fileName, 1))
+	uploadSessionRequest, _ := http.NewRequest("POST", sessionURL, bytes.NewBuffer(payload))
 	uploadSessionRequest.Header.Add("Content-Type", "application/json")
-	uploadSessionRequest.Header.Add("Authorization", config.TokenType+" "+token.SavedToken.AccessToken)
+	uploadSessionRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
+
+	token.RefreshToken()
 
 	client := &http.Client{}
 	resp, err := client.Do(uploadSessionRequest)
@@ -93,13 +98,12 @@ func UploadFile(localFilePath string) {
 			finishedPercent := float64(float64(i+1)/float64(blockSize)) * 100
 			finishedPercentText := fmt.Sprintf("%.2f", finishedPercent)
 			for !isSuccess {
-				fmt.Println("Uploading fragment number: " + strconv.Itoa(i+1) + "/" + strconv.Itoa(blockSize) + "....(" + finishedPercentText + "%)")
 				numberOfAttempt++
 				if numberOfAttempt > 0 {
 					fmt.Println("Uploading was failed, trying to upload again (Number of attempting: " + strconv.Itoa(numberOfAttempt) + "....")
 				}
-				//Compute the passTime to check if the token has to be refreshed or not
-				// fmt.Println("subTime: " + strconv.Itoa(int(time.Now().Sub(token.RefreshTokenStartTime))))
+
+				//refresh token if it is over time
 				if time.Now().After(config.ExpiredTime) || numberOfAttempt > 0 {
 					fmt.Println("The Token is expired, refreshing...")
 					token.RefreshToken()
@@ -108,15 +112,15 @@ func UploadFile(localFilePath string) {
 				isSuccess = true
 				var byteBlock []byte
 				byteBlock = fileBytes[(i * config.FragSize):]
-				param := "bytes " + strconv.Itoa(i*config.FragSize) + "-" + strconv.Itoa(fileSize-1) + "/" + strconv.Itoa(fileSize)
+				param := "bytes " + strconv.Itoa(i*config.FragSize) + "-" + strconv.FormatInt(fileSize-1, 10) + "/" + strconv.FormatInt(fileSize, 10)
 				if i < blockSize-1 {
 					byteBlock = fileBytes[(i * config.FragSize):(i*config.FragSize + config.FragSize)]
-					param = "bytes " + strconv.Itoa(i*config.FragSize) + "-" + strconv.Itoa(i*config.FragSize+config.FragSize-1) + "/" + strconv.Itoa(fileSize)
+					param = "bytes " + strconv.Itoa(i*config.FragSize) + "-" + strconv.Itoa(i*config.FragSize+config.FragSize-1) + "/" + strconv.FormatInt(fileSize, 10)
 				}
 				sizeByteBlock := len(byteBlock)
 				uploadBlockFileRequest, _ := http.NewRequest("PUT", uploadJSONResult.UploadUrl, bytes.NewBuffer(byteBlock))
 				uploadBlockFileRequest.Header.Add("Content-Length", strconv.Itoa(sizeByteBlock))
-				uploadBlockFileRequest.Header.Add("Authorization", config.TokenType+" "+token.SavedToken.AccessToken)
+				uploadBlockFileRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
 				uploadBlockFileRequest.Header.Add("Content-Range", param)
 
 				client := &http.Client{}
@@ -128,6 +132,7 @@ func UploadFile(localFilePath string) {
 				}
 				defer resp.Body.Close()
 				body, _ := ioutil.ReadAll(resp.Body)
+				fmt.Println("Uploaded fragment number: " + strconv.Itoa(i+1) + "/" + strconv.Itoa(blockSize) + "....(" + finishedPercentText + "%)")
 				if i < blockSize-1 {
 					var uploadBlockResponse models.UploadBlockResponse
 					json.Unmarshal(body, &uploadBlockResponse)
@@ -135,10 +140,11 @@ func UploadFile(localFilePath string) {
 					json.Unmarshal(body, &uploadFinishedResponse)
 					fmt.Println("uploading is finished, file: " + uploadFinishedResponse.Name)
 					fmt.Println("Download link: " + uploadFinishedResponse.DownloadUrl)
+
+					//create a link for everyone can access
+					ShareLinkFunc(&uploadFinishedResponse)
 				}
 			}
 		}
-
-		ShareLinkFunc(&uploadFinishedResponse)
 	}
 }

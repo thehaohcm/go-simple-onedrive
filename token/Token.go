@@ -9,18 +9,6 @@ import (
 
 	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/models"
-
-	"golang.org/x/oauth2"
-)
-
-var (
-	//token for acessing
-	SavedToken = &oauth2.Token{
-		AccessToken:  "eyJ0eXAiOiJKV1QiLCJub25jZSI6IlFEbFQ5RzBnall0LTBjVy1rQ0NsLXhBcDNGbEtXdXdMclEtNzZxOHQxbUEiLCJhbGciOiJSUzI1NiIsIng1dCI6IjVPZjlQNUY5Z0NDd0NtRjJCT0hIeEREUS1EayIsImtpZCI6IjVPZjlQNUY5Z0NDd0NtRjJCT0hIeEREUS1EayJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTAwMDAtYzAwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9mYTM4OTRiYS0wZmZjLTQ4NDctYWU5NC01MTAxNDZkN2NhOTcvIiwiaWF0IjoxNjA5NjYyODA5LCJuYmYiOjE2MDk2NjI4MDksImV4cCI6MTYwOTY2NjcwOSwiYWNjdCI6MCwiYWNyIjoiMSIsImFjcnMiOlsidXJuOnVzZXI6cmVnaXN0ZXJzZWN1cml0eWluZm8iLCJ1cm46bWljcm9zb2Z0OnJlcTEiLCJ1cm46bWljcm9zb2Z0OnJlcTIiLCJ1cm46bWljcm9zb2Z0OnJlcTMiLCJjMSIsImMyIiwiYzMiLCJjNCIsImM1IiwiYzYiLCJjNyIsImM4IiwiYzkiLCJjMTAiLCJjMTEiLCJjMTIiLCJjMTMiLCJjMTQiLCJjMTUiLCJjMTYiLCJjMTciLCJjMTgiLCJjMTkiLCJjMjAiLCJjMjEiLCJjMjIiLCJjMjMiLCJjMjQiLCJjMjUiXSwiYWlvIjoiRTJKZ1lGajl6N2J5aXRvRXJ5aC96bThuclA4NXg0cnNZRGhjN0hsSjdON0MwenVxV2dzQiIsImFtciI6WyJwd2QiXSwiYXBwX2Rpc3BsYXluYW1lIjoiZGlydHlmaWxtIGFwcCIsImFwcGlkIjoiZmJlMWZmZDEtOTNjYS00YWFmLWExMjEtNjU2ODQ5YjJjZmQzIiwiYXBwaWRhY3IiOiIxIiwiaWR0eXAiOiJ1c2VyIiwiaXBhZGRyIjoiNDIuMTE5LjYxLjE4MiIsIm5hbWUiOiJOZ3V5ZW4gSGFvIiwib2lkIjoiMjczN2NlNzEtZGRmYy00MWQyLTkwMjgtMDE4Y2U1NGExOGY0IiwicGxhdGYiOiI1IiwicHVpZCI6IjEwMDMyMDAxMDgxMTAzNkEiLCJyaCI6IjAuQUFBQXVwUTQtdndQUjBpdWxGRUJSdGZLbDlIXzRmdktrNjlLb1NGbGFFbXl6OU5KQUJFLiIsInNjcCI6IkZpbGVzLlJlYWRXcml0ZS5BbGwgb3BlbmlkIFVzZXIuUmVhZEJhc2ljLkFsbCBVc2VyLlJlYWRXcml0ZSBwcm9maWxlIGVtYWlsIiwic2lnbmluX3N0YXRlIjpbImttc2kiXSwic3ViIjoiRzkwcG5uUmJTM2U3MUV5MnpSUGctaldkV0lXbWxkelI4eV9mWm9MRkNVZyIsInRlbmFudF9yZWdpb25fc2NvcGUiOiJBUyIsInRpZCI6ImZhMzg5NGJhLTBmZmMtNDg0Ny1hZTk0LTUxMDE0NmQ3Y2E5NyIsInVuaXF1ZV9uYW1lIjoiZGF2aWRudGgxMjE3MUBtb2Qub2JhZ2cuY29tIiwidXBuIjoiZGF2aWRudGgxMjE3MUBtb2Qub2JhZ2cuY29tIiwidXRpIjoiLXVCMUxYcmh6RTJPOWV5NDZadUpBQSIsInZlciI6IjEuMCIsIndpZHMiOlsiYjc5ZmJmNGQtM2VmOS00Njg5LTgxNDMtNzZiMTk0ZTg1NTA5Il0sInhtc19zdCI6eyJzdWIiOiJiaXJUQWVfMGt1TllNYU03RU5Ib2JBdi1MVkJYUmtPUElYeE9KdlJWMGEwIn0sInhtc190Y2R0IjoxNTcxNDIxMDAzfQ.HNqqNFDzzTnkan8dSbD1Zw0O4DlmjPS7P5AD98Y6wtBRSNTGqSr1qGO-f6D9HyQPRnOkxoKJbJVTi1PesoG-BxZF1lpXd9s_Yc0pN5ckqPZnIXBsk4psg8zWrThuKTXQEcHdsDiq1MheZpxuT9763D3EmFIghTcbiyPtf3eTK3_nuTMxIKRlps4IGUUxb85pjqYeQ4f6_ikAt5hbL8l4SOMisTPtnYdyNnKW_poWMWEP158L90zDtXk6Tu5DC1P49zotmug6x8SYDkAhgeFGvXFJ_uCpBw-gLNvWs-FdGLLbXQILM_qNlRQpmeq0eofvUAVqgnA-UsjvPDXoqTxe5w",
-		RefreshToken: "0.AAAAupQ4-vwPR0iulFEBRtfKl9H_4fvKk69KoSFlaEmyz9NJABE.AgABAAAAAABeStGSRwwnTq2vHplZ9KL4AQDs_wMA9P-v-JZTpt4MHs72P94JkAKdkhk8pAKDoD4mg0OyREkO942gxLko6qYxuXID_2MDAv_Q0UowlxutbueOa3JPyRcFeTADAB7mdm72tAR-Z0u7-Z7E0eMXjo25sCK24wHS4kENR2PNISvsHGyokmfD2AIh55HnMrKZPc77bf1-k8HEKR4-ObcB4Nv5QUV0K8r9LHHWHazV1cWAnBlQMt5eJNUVqnfJbN2vHyEQXQ6NmD33Ox51L_t9mBnc2RhEFZJQE1gdHwFDvgDhPz7f3HD-u5duGYWeVi4kHdOOutk-EvZr1ZWlgucoeVcBmrlgHOG-URkyqzBO4BXRYBXDzjlbzyXgyHByXZsHb4BhXGAkPgGt1PWUEvCc-bQ0PMXMZ_0KaavIuuHGQ8QazqI7jaxp4JzglT14WUy1MxrzdsAFQVYvWrfusAT_68m-VbpQuhCcbRO_7aEqSw2gbhhmVHl5iCRKv7w1GDKR7i68WAL67o0mneUUgsFbPPG49gpFtX0DxQ6CGPKxTrYS5z08JjOdW0SrJOIcVZL7Rul0j6iR1qfKSllnCpUdtbDoqcBuH9c7ZCnrpGhqAgH_j8zHP6E5Btr_tWJCV9SumvkwbC9vRK5ThkxJaCjFayMJi8sGqOJnzzGfdZwrJLzQ6NVSHUPeRCq1ewkNfB9FfZbFy-EyD7cvoeS59Oxq7tSS8S_4av4ufe1wsSjIvr6aBNCe_nsyudhlWP7iiiIAnK2vcdrHwpgFyjcGNSmX1EMc943lt2Q7Sr0iPZL0EfkvwolPmSJA3eq3TSaiYBYn3HSnpiexYGpwQ7Cw3iNY6vA9Tf_O1Iz8EPj5rugQNtgK5fzeF7FPwfhgwic1x__LVrz2LEla5n2YBhikxcTUDdXBxlYe0TbJO2FNAzsJUi9eKGwdFG0sneEFWN2DphAr9RuvxSd4Hg",
-		Expiry:       time.Now().Add(time.Duration(3599) * time.Second),
-		TokenType:    "Bearer",
-	}
 )
 
 func init() {
@@ -28,9 +16,15 @@ func init() {
 }
 
 func RefreshToken() {
-	url := "https://login.microsoftonline.com/" + config.TenantID + "/oauth2/v2.0/token"
+	url := strings.Replace(config.RefreshAPIEndPoint, "{TENANT_ID}", config.TenantID, 1)
 
-	payload := strings.NewReader("grant_type=refresh_token&client_id=fbe1ffd1-93ca-4aaf-a121-656849b2cfd3&client_secret=.4.PpG17mF_TyQ3~2wWRwZFTbOU_5aq3Gf&scope=Files.ReadWrite.All openid User.ReadBasic.All User.ReadWrite profile email&redirect_uri=http://localhost&refresh_token=0.AAAAupQ4-vwPR0iulFEBRtfKl9H_4fvKk69KoSFlaEmyz9NJABE.AgABAAAAAABeStGSRwwnTq2vHplZ9KL4AQDs_wMA9P-QK3iimV68Dj8e4oIL1sVYtQDtyFxlsNbKFUsfmR6FdyP327E0_leNzf15ul6MASaTrkBcGWn16d3T7mi0Qcx-HsffHhK3yz2QBl_kqTjy3CzyHcTE_xYL63JaeAuUfRxEiMJ5M3ivr5U44Wauai2TBFdPwCNm7mME_962WBCpEc-PMSeYyZpEYOpTwTeuCjhYMKZqOTzq8oWOWHsNV3qHddBeBMd73Pf_nycmNRFj0Cd0lvPlcxhPQgEtnWUTu4ZvMfDoJqxZINkSMAHyKntbrnGSC16q9loDXpW6pCxM_ohmff1g41OXrWLbdSsOtu-nHfRDOJcJ4zU8mT80mfGs85FjBtklr04z1wEJMuwAJGm67E2_Ryq-xcq_mdj18gLE3SD9zhlT0qPq5fOCFZd-DG3a8X04WPTkPa0BKlxsgZa3tPWpFDdN7DzacDCPdkTA4STdWsTL3aY9tEFge0jrNTz_NtKTYVAei0cJi6ULO-JF16WYx1pCTfHAt_wdEwuwoMiR_oEE5QhXpRIus5gv1ZKwaB97TS-E22Iy48g8EFe2pP8k8FNPHpfme-vWTSONszSJAU82Epe4BTN9_Df2Jhbzsd_VfJsSLDfUIqiV13MDt5Hd1oni0cVrAALfy-tAUy0mzUz71T7JXhLfnoAoiwt6Zapuat-g0KBI9UU1sm6-Fz5JaL3DSW8xdZVeragDKOwEd-mLQ1ibDcVWtzu4aHSDm12nK_y7EJFS5HcJzXx1CXGWij2lzMdyEMwPjSoOsOoCCrlrcc7XhbJDHDzf0HWjo66VhB9VNhbPfQcdi_liIrNeUBaCA97zwjvSzK8Mh7o4SFtxrtXntsde-SvuhSM5_RVbS0sfOvkfuVPiLkAOHVZoV_x-7qhO99GsI2nW7AzLMKghyGq2nELAo7QJwnm8H4upVaQ")
+	fmt.Println("url: " + url + ", TENANT_ID: " + config.TenantID)
+	payload := strings.NewReader("grant_type=refresh_token" +
+		"&client_id=" + config.ClientID +
+		"&client_secret=" + config.ClientSecret +
+		"&scope=" + config.Scope +
+		"&redirect_uri=" + config.RedirectUrl +
+		"&refresh_token=" + config.RefreshToken)
 
 	req, _ := http.NewRequest("POST", url, payload)
 
@@ -46,7 +40,9 @@ func RefreshToken() {
 	}
 	defer res.Body.Close()
 
-	if jsonResult.AccessToken != SavedToken.AccessToken {
+	fmt.Println("jsonResult.AccessToken: " + jsonResult.AccessToken)
+
+	if jsonResult.AccessToken != config.SavedToken.AccessToken {
 		saveToken(&jsonResult)
 		fmt.Println("saved a new token")
 	} else {
@@ -56,9 +52,10 @@ func RefreshToken() {
 }
 
 func saveToken(tokenJSON *models.RefreshTokenResponse) {
-	SavedToken.AccessToken = tokenJSON.AccessToken
-	SavedToken.RefreshToken = tokenJSON.RefreshToken
-	SavedToken.TokenType = tokenJSON.TokenType
+	config.SavedToken.AccessToken = tokenJSON.AccessToken
+	config.SavedToken.RefreshToken = tokenJSON.RefreshToken
+	config.SavedToken.TokenType = tokenJSON.TokenType
+	config.SavedToken.Expiry = time.Now().Add(3599 * time.Second)
 
 	//assign the new refreshTokenStartTime
 	config.ExpiredTime = time.Now().Add(3000 * time.Second)

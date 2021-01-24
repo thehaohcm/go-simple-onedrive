@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/models"
-	"github.com/thehaohcm/go-simple-onedrive/token"
 )
 
 func HandleHttpRequestForUploading(httpRequest *models.HttpRequest, response interface{}) {
@@ -16,7 +16,7 @@ func HandleHttpRequestForUploading(httpRequest *models.HttpRequest, response int
 	for _, header := range httpRequest.Headers {
 		request.Header.Add(header.Key, header.Value)
 	}
-	request.Header.Add("Authorization", "Bearer "+token.SavedToken.AccessToken)
+	request.Header.Add("Authorization", "Bearer "+config.SavedToken.AccessToken)
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(request)
 	if err != nil {

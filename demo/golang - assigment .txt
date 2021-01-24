@@ -1,0 +1,77 @@
+SQL script to create Database and stuffs:
+
+drop schema if exists golang_assigment;
+create schema golang_assignment;
+use golang_assignment;
+
+drop table if exists USER;
+create table USER (
+	email nvarchar(50) primary key,
+    first_name nvarchar(30) NULL,
+    last_name nvarchar(30) NULL
+);
+
+drop table if exists FRIEND_RELATIONSHIP;
+create table FRIEND_RELATIONSHIP (
+	user1_email nvarchar(50) not null,
+    user2_email nvarchar(50) not null,
+    blocked boolean not null default 0,
+    primary key(user1_email, user2_email),
+    foreign key (user1_email) references USER(email),
+    foreign key (user2_email) references USER(email)
+);
+
+drop table if exists SUBCRIBE;
+create table SUBCRIBE (
+	requester_email nvarchar(50) not null,
+    target_email nvarchar(50) not null,
+    blocked boolean not null default 0,
+    primary key(requester_email, target_email),
+    foreign key (requester_email) references USER(email),
+    foreign key (target_email) references USER(email)
+);
+
+insert into user(email, first_name, last_name)
+values ('chinh.nguyen@s3corp.com.vn', 'Chinh', 'Nguyen');
+insert into user(email, first_name, last_name)
+values ('hao.nguyen@s3corp.com.vn', 'Hao', 'Nguyen')
+
+
+1. As a user, I need an API to create a friend connection between two email addresses. SQL Statement:
+INSERT INTO public.friend_relationship(user_email, friend_email, blocked)
+VALUES('user1@example.com', 'user2@example.com', false), ('user2@example.com', 'user1@example.com', false)
+
+2. As a user, I need an API to retrieve the friends list for an email address. 
+SQL Statement:
+SELECT friend_email FROM public.friend_relationship WHERE user_email = 'user1@example.com'
+3. As a user, I need an API to retrieve the common friends list between two email addresses. 
+SQL statement:
+SELECT public.friend_email FROM public.friend_relationship 
+WHERE user_email='user1@example.com' OR user_email='user2@example.com'
+GROUP BY friend_email
+HAVING friend_email NOT LIKE 'user1@example.com' OR friend_email NOT LIKE 'user2@example.com'
+
+4. As a user, I need an API to subscribe to updates from an email address. 
+SQL statement:
+SQL statement:
+INSERT INTO public.SUBSCRIBE(register_email, target_email, blocked)
+VALUES('user1@example.com','user2@example.com', false)
+
+5. As a user, I need an API to block updates from an email address. 
+More details:
+Suppose "andy@example.com" blocks "john@example.com":
+• if they are connected as friends, then "andy" will no longer receive
+notifications from "john"
+• if they are not connected as friends, then no new friends connection can be added
+SQL Statement:
+INSERT INTO public.friend_relationship(user_email, friend_email, blocked)
+VALUES('user1@example.com', 'user2@example.com', true), ('user2@example.com', 'user1@example.com', true)
+INSERT INTO public.SUBSCRIBE(register_email, target_email, blocked)
+VALUES('user1@example.com','user2@example.com', true)
+
+6. As a user, I need an API to retrieve all email addresses that can receive updates from an email address. More details:
+Eligibility for receiving updates from i.e. "john@example.com":
+• has not blocked updates from "john@example.com", and
+• at least one of the following:
+o has a friend connection with "john@example.com"
+o has subscribed to updates from "john@example.com" o has been @mentioned in the update
