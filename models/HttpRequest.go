@@ -2,7 +2,8 @@ package models
 
 import (
 	"fmt"
-	"https://github.com/thehaohcm/go-simple-onedrive/enums"
+
+	"github.com/thehaohcm/go-simple-onedrive/enums"
 )
 
 type HttpRequest struct {

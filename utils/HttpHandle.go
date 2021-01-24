@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"https://github.com/thehaohcm/go-simple-onedrive/models"
-	"https://github.com/thehaohcm/go-simple-onedrive/token"
+
+	"github.com/thehaohcm/go-simple-onedrive/models"
+	"github.com/thehaohcm/go-simple-onedrive/token"
 )
 
 func HandleHttpRequestForUploading(httpRequest *models.HttpRequest, response interface{}) {

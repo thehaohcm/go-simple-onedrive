@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"https://github.com/thehaohcm/go-simple-onedrive/models"
 	"strings"
 	"time"
+
+	"github.com/thehaohcm/go-simple-onedrive/models"
 
 	"golang.org/x/oauth2"
 )

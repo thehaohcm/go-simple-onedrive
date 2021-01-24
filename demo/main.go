@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
-	"https://github.com/thehaohcm/go-simple-onedrive/token"
-	"https://github.com/thehaohcm/go-simple-onedrive/utils"
+	"github.com/thehaohcm/go-simple-onedrive/token"
+	"github.com/thehaohcm/go-simple-onedrive/upload"
 
 	"github.com/goh-chunlin/go-onedrive/onedrive"
 	"golang.org/x/oauth2"
@@ -38,8 +39,12 @@ func getInstance() (context.Context, *onedrive.Client) {
 }
 
 func main() {
-	// utils.UploadFileWithSession("IPX415C.mp4")
-	utils.UploadFileWithSessionMultiThreading("IPX415C.mp4")
+	args := os.Args[1:]
+	if len(args) == 0 || len(args) > 1 {
+		fmt.Println("Something is wrong, please add a file path as an argument...")
+	}
+	filePath := args[1]
+	upload.UploadFile(filePath)
 	ctx, client := getInstance()
 
 	drives, err := client.Drives.List(ctx)
