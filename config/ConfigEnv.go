@@ -37,7 +37,7 @@ var (
 
 func init() {
 	// viper.SetConfigName("config")
-	viper.SetConfigName("config-prod")
+	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("../")
 
