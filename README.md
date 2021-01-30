@@ -25,5 +25,5 @@ You can following all these below steps to run an application:
 
 Notice: the applicaiton can upload with a large file (with a several GB, as far as I tested, everything works properly)
 
-screenshot if the uploading file completed:
+screenshot if the uploading file successfully completed:
 ![alt text](https://github.com/thehaohcm/go-simple-onedrive/blob/master/screenshot/screenshot-demo.png?raw=true)
