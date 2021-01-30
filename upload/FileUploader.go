@@ -66,8 +66,6 @@ func UploadFile(localFilePath string) {
 		blockSize = (int(fileSize) + config.FragSize - 1) / config.FragSize
 	}
 
-	fmt.Println("blockSize: " + strconv.Itoa(blockSize))
-
 	sessionURL := strings.Replace(config.UploadAPIEndPoint, "{UPLOAD_FOLDER_PATH}", config.UploadFolderPath, 1)
 	sessionURL = strings.Replace(sessionURL, "{FILE_NAME}", fileName, 1)
 	//Create an Upload Session

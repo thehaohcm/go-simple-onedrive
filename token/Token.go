@@ -18,7 +18,6 @@ func init() {
 func RefreshToken() {
 	url := strings.Replace(config.RefreshAPIEndPoint, "{TENANT_ID}", config.TenantID, 1)
 
-	fmt.Println("url: " + url + ", TENANT_ID: " + config.TenantID)
 	payload := strings.NewReader("grant_type=refresh_token" +
 		"&client_id=" + config.ClientID +
 		"&client_secret=" + config.ClientSecret +
@@ -40,9 +39,7 @@ func RefreshToken() {
 	}
 	defer res.Body.Close()
 
-	fmt.Println("jsonResult.AccessToken: " + jsonResult.AccessToken)
-
-	if jsonResult.AccessToken != config.SavedToken.AccessToken {
+	if config.SavedToken != nil && jsonResult.AccessToken != config.SavedToken.AccessToken {
 		saveToken(&jsonResult)
 		fmt.Println("saved a new token")
 	} else {

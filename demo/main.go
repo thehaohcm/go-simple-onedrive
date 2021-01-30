@@ -40,24 +40,27 @@ func main() {
 
 	drives, err := client.Drives.List(ctx)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 
-	for _, drive := range drives.Drives {
-		fmt.Printf("Results: %v\n", drive.Owner.User.DisplayName)
+	if drives != nil && drives.Drives != nil {
+		for _, drive := range drives.Drives {
+			fmt.Printf("Account Name: %v\n", drive.Owner.User.DisplayName)
+		}
 	}
 
 	//get list item of root
 	driveItems, err := client.DriveItems.List(ctx, "")
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
-	} else {
+	} else if driveItems != nil {
 		fmt.Println("Items of root folder: ")
 		for _, driveItem := range driveItems.DriveItems {
-			fmt.Printf(" - %v ", driveItem.Name)
+			fmt.Printf(" -%v ", driveItem.Name)
 			// if driveItem.Folder != nil {
 			// 	fmt.Printf("- Folder\n")
 			// }
 		}
+		fmt.Printf("\n")
 	}
 }
