@@ -15,7 +15,7 @@ You can following all these below steps to run an application:
 
 1st step: clone this repo into your local pc (in branch master)
 
-2nd step: open the application's folder by an IDE (ex: Visual Code), then run a command "go get" in terminal to install all neccessary packages (please make sure your pc has been installed GO lang and GO GET):
+2nd step: open the application's folder by an IDE (ex: Visual Code), then run a command "**go get**" in terminal to install all neccessary packages (please make sure your pc has been installed GO lang and GO GET):
 
 3rd step: open the file **config.yaml** and replace all neccessary variables inside with correct info of OneDrive API register's info
 
