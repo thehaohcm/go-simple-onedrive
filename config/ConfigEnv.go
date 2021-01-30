@@ -31,12 +31,10 @@ var (
 	SavedToken *oauth2.Token
 
 	//Auths
-	OauthConf      *oauth2.Config
-	OneDriveClient oauth2.TokenSource
+	OauthConf *oauth2.Config
 )
 
 func init() {
-	// viper.SetConfigName("config")
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("../")
@@ -87,8 +85,4 @@ func createAuths() {
 		Scopes:       []string{"Files.ReadWrite.All", "Sites.ReadWrite.All", "openid", "User.ReadBasic.All", "User.ReadWrite", "profile", "email"},
 		Endpoint:     microsoft.AzureADEndpoint(TenantID),
 	}
-
-	OneDriveClient = oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: SavedToken.AccessToken},
-	)
 }

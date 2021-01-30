@@ -18,9 +18,12 @@ var (
 )
 
 func getInstance() (context.Context, *onedrive.Client) {
-	// token.RefreshToken()
+	oneDriveClient := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: config.SavedToken.AccessToken},
+	)
+
 	ctx := context.Background()
-	tc := oauth2.NewClient(ctx, config.OneDriveClient)
+	tc := oauth2.NewClient(ctx, oneDriveClient)
 	client = onedrive.NewClient(tc)
 	return ctx, client
 }
@@ -29,6 +32,7 @@ func main() {
 	args := os.Args[1:]
 	if len(args) == 0 || len(args) > 1 {
 		fmt.Println("Something is wrong, please add a file path as an argument...")
+		os.Exit(1)
 	}
 	filePath := args[0]
 	upload.UploadFile(filePath)
@@ -36,7 +40,7 @@ func main() {
 
 	drives, err := client.Drives.List(ctx)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	for _, drive := range drives.Drives {
@@ -50,7 +54,7 @@ func main() {
 	} else {
 		fmt.Println("Items of root folder: ")
 		for _, driveItem := range driveItems.DriveItems {
-			fmt.Printf(" -%v ", driveItem.Name)
+			fmt.Printf(" - %v ", driveItem.Name)
 			// if driveItem.Folder != nil {
 			// 	fmt.Printf("- Folder\n")
 			// }
