@@ -24,7 +24,7 @@ You can following all these below steps to run an application:
 5th step: type this command along with a speific path to upload a file into your OneDrive account path: **go run main.go *[FILE_PATH]***
   ex: **go run main.go 
 
-Notice: the applicaiton can upload with a large file (with a several GB, as far as I tested, everything works properly)
+Notice: the applicaiton can upload with a large file (everything works properly when I tested by uploading a file whose size is a several GB)
 
 screenshot if the uploading file successfully completed:
 ![alt text](https://github.com/thehaohcm/go-simple-onedrive/blob/master/screenshot/screenshot-demo.png?raw=true)
