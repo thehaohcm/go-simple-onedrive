@@ -2,6 +2,7 @@
 A simple Onedrive application in CLI writen by Golang
 
 Copyright © by Nguyen The Hao 2020
+
 Author: thehaohcm (Nguyen The Hao) 
 
 git repository: https://github.com/thehaohcm/go-simple-ondrive
