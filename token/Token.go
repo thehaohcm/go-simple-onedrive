@@ -49,6 +49,7 @@ func RefreshToken() {
 }
 
 func saveToken(tokenJSON *models.RefreshTokenResponse) {
+	fmt.Println("AccessToken: " + tokenJSON.AccessToken)
 	config.SavedToken.AccessToken = tokenJSON.AccessToken
 	config.SavedToken.RefreshToken = tokenJSON.RefreshToken
 	config.SavedToken.TokenType = tokenJSON.TokenType

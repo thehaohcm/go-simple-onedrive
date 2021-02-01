@@ -9,21 +9,22 @@ import (
 )
 
 var (
-	ClientID           string
-	ClientSecret       string
-	Scope              string
-	RedirectUrl        string
-	TenantID           string
-	RefreshToken       string
-	Expiry             int64
-	TokenType          string
-	UploadFolderPath   string
-	RefreshAPIEndPoint string
-	UploadAPIEndPoint  string
-	ShareAPIEndPoint   string
-	FragSize           int
-	ShareBodyJSON      string
-	UploadBodyJSON     string
+	ClientID             string
+	ClientSecret         string
+	Scope                string
+	RedirectUrl          string
+	TenantID             string
+	RefreshToken         string
+	Expiry               int64
+	TokenType            string
+	UploadFolderPath     string
+	RefreshAPIEndPoint   string
+	UploadAPIEndPoint    string
+	ShareAPIEndPoint     string
+	FragSize             int
+	ShareBodyJSON        string
+	UploadBodyJSON       string
+	GetItemsPathEndPoint string
 
 	ExpiredTime time.Time
 
@@ -64,6 +65,7 @@ func loadConfigVariables() {
 	FragSize = viper.GetInt("FRAG_SIZE")
 	ShareBodyJSON = viper.GetString("SHARE_BODY_JSON")
 	UploadBodyJSON = viper.GetString("UPLOAD_BODY_JSON")
+	GetItemsPathEndPoint = viper.GetString("GET_ITEMS_PATH_ENDPOINT")
 
 	ExpiredTime = time.Now().Add(3000 * time.Second)
 }
