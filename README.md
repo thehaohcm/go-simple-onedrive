@@ -9,9 +9,11 @@ git repository: https://github.com/thehaohcm/go-simple-ondrive
 
 This is my simple OneDrive Application with CLI written by Golang. Currently, it just has only one feature is uploading file. I will try to implement another feature when I have a free time
 
-Detail instruction url: https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
+Detail instruction url: 
+Upload feature: https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
+Get Items feature: https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_delta?view=odsp-graph-online
 
-You can following all these below steps to run an application: 
+You can follow all these below steps to run an application: 
 
 1st step: clone this repo into your local pc (in branch master)
 
@@ -26,5 +28,5 @@ You can following all these below steps to run an application:
 
 Notice: the applicaiton can upload with a large file (everything works properly when I tested by uploading a file whose size is a several GB)
 
-screenshot if the uploading file successfully completed:
+This is a screenshot when the uploading file successfully completed:
 ![alt text](https://github.com/thehaohcm/go-simple-onedrive/blob/master/screenshot/screenshot-demo.png?raw=true)

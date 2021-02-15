@@ -1,25 +1,21 @@
 package models
 
-import(
-	"time"
-)
-
-type Config struct{
-	ClientID           string
-	ClientSecret       string
-	Scope              string
-	RedirectUrl        string
-	TenantID           string
-	RefreshToken       string
-	Expiry             int64
-	TokenType          string
-	UploadFolderPath   string
-	RefreshAPIEndPoint string
-	UploadAPIEndPoint  string
-	ShareAPIEndPoint   string
-	FragSize           int
-	ShareBodyJSON      string
-	UploadBodyJSON     string
-
-	ExpiredTime time.Time
+type Config struct {
+	ClientID             string `json:"clientID"`
+	ClientSecret         string `json:"clientSecret"`
+	AccessToken          string `json:"accessToken"`
+	Scope                string `json:"scope,omitempty"`
+	RedirectUrl          string `json:"redirectURL"`
+	TenantID             string `json:"tenantID"`
+	RefreshToken         string `json:"refreshToken"`
+	Expiry               int64  `json:"expiry,omitempty"`
+	TokenType            string `json:"tokenType,omitempty"`
+	UploadFolderPath     string `json:"uploadFolderPath,omitempty"`
+	RefreshAPIEndPoint   string `json:"refreshAPIEndpoint,omitempty"`
+	UploadAPIEndPoint    string `json:"uploadAPIEndpoint,omitempty"`
+	ShareAPIEndPoint     string `json:"shareAPIEndPoint,omitempty"`
+	GetItemsPathEndPoint string `json:"getItemsPathEndPoint,omitempty"`
+	FragSize             int    `json:"fragSize,omitempty"`
+	ShareBodyJSON        string `json:"shareBodyJSON,omitempty"`
+	UploadBodyJSON       string `json:"uploadBodyJSON,omitempty"`
 }

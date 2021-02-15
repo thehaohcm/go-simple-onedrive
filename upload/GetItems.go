@@ -9,7 +9,6 @@ import (
 
 	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/models"
-	"github.com/thehaohcm/go-simple-onedrive/token"
 	"github.com/thehaohcm/go-simple-onedrive/utils"
 )
 
@@ -20,7 +19,7 @@ func GetItemsByPath(path string) {
 	getItemsRequest.Header.Add("Content-Type", "application/json")
 	getItemsRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
 
-	token.RefreshToken()
+	config.RefreshTokenFunc()
 
 	client := &http.Client{}
 	resp, err := client.Do(getItemsRequest)

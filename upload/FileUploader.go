@@ -15,7 +15,6 @@ import (
 	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/enums"
 	"github.com/thehaohcm/go-simple-onedrive/models"
-	"github.com/thehaohcm/go-simple-onedrive/token"
 	"github.com/thehaohcm/go-simple-onedrive/utils"
 )
 
@@ -27,7 +26,7 @@ var (
 )
 
 func ShareLinkFunc(uploadFinishedResponse *models.UploadFinishedResponse) {
-	token.RefreshToken()
+	config.RefreshTokenFunc()
 	if uploadFinishedResponse != nil && uploadFinishedResponse.Id != "" {
 		//share the item's link
 		sharedLinkAPIEndpoint := strings.Replace(config.ShareAPIEndPoint, "{UPLOADED_FILE_ID}", uploadFinishedResponse.Id, 1)
@@ -69,13 +68,13 @@ func UploadFile(localFilePath string) {
 	sessionURL := strings.Replace(config.UploadAPIEndPoint, "{UPLOAD_FOLDER_PATH}", config.UploadFolderPath, 1)
 	sessionURL = strings.Replace(sessionURL, "{FILE_NAME}", fileName, 1)
 	//Create an Upload Session
-	// fmt.Println("Creating an Uploading Session, with token: " + token.SavedToken.AccessToken)
+	// fmt.Println("Creating an Uploading Session, with token: " + config.SavedToken.AccessToken)
 	var payload = []byte(strings.Replace(config.UploadBodyJSON, "{FILE_NAME}", fileName, 1))
 	uploadSessionRequest, _ := http.NewRequest("POST", sessionURL, bytes.NewBuffer(payload))
 	uploadSessionRequest.Header.Add("Content-Type", "application/json")
 	uploadSessionRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
 
-	token.RefreshToken()
+	config.RefreshTokenFunc()
 
 	client := &http.Client{}
 	resp, err := client.Do(uploadSessionRequest)
@@ -104,7 +103,7 @@ func UploadFile(localFilePath string) {
 				//refresh token if it is over time
 				if time.Now().After(config.ExpiredTime) || numberOfAttempt > 0 {
 					fmt.Println("The Token is expired, refreshing...")
-					token.RefreshToken()
+					config.RefreshTokenFunc()
 				}
 
 				isSuccess = true

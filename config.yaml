@@ -1,5 +1,6 @@
 CLIENT_ID: "{CLIENT_ID}"
 CLIENT_SECRET: "{CLIENT_SECRET}"
+ACCESS_TOKEN: "{ACCESS_TOKEN}"
 SCOPE: "Files.ReadWrite.All openid User.ReadBasic.All User.ReadWrite profile email"
 REDIRECT_URL: "{REDIRECT_URL}"
 TENANT_ID: "{TENANT_ID}"

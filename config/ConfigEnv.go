@@ -1,9 +1,14 @@
 package config
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
+	"github.com/thehaohcm/go-simple-onedrive/models"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/microsoft"
 )
@@ -11,6 +16,7 @@ import (
 var (
 	ClientID             string
 	ClientSecret         string
+	AccessToken          string
 	Scope                string
 	RedirectUrl          string
 	TenantID             string
@@ -35,7 +41,7 @@ var (
 	OauthConf *oauth2.Config
 )
 
-func init() {
+func LoadConfigFromFile() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("../")
@@ -51,7 +57,8 @@ func init() {
 
 func loadConfigVariables() {
 	ClientID = viper.GetString("CLIENT_ID")
-	ClientSecret = viper.GetString("CLIENT_SECRET")
+	AccessToken = viper.GetString("ACCESS_TOKEN")
+	AccessToken = viper.GetString("ACCESS_TOKEN")
 	Scope = viper.GetString("SCOPE")
 	RedirectUrl = viper.GetString("REDIRECT_URL")
 	TenantID = viper.GetString("TENANT_ID")
@@ -73,8 +80,7 @@ func loadConfigVariables() {
 func createAuths() {
 
 	SavedToken = &oauth2.Token{
-		AccessToken: "eyJ0eXAiOiJKV1QiLCJub25jZSI6IlFEbFQ5RzBnall0LTBjVy1rQ0NsLXhBcDNGbEtXdXdMclEtNzZxOHQxbUEiLCJhbGciOiJSUzI1NiIsIng1dCI6IjVPZjlQNUY5Z0NDd0NtRjJCT0hIeEREUS1EayIsImtpZCI6IjVPZjlQNUY5Z0NDd0NtRjJCT0hIeEREUS1EayJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTAwMDAtYzAwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9mYTM4OTRiYS0wZmZjLTQ4NDctYWU5NC01MTAxNDZkN2NhOTcvIiwiaWF0IjoxNjA5NjYyODA5LCJuYmYiOjE2MDk2NjI4MDksImV4cCI6MTYwOTY2NjcwOSwiYWNjdCI6MCwiYWNyIjoiMSIsImFjcnMiOlsidXJuOnVzZXI6cmVnaXN0ZXJzZWN1cml0eWluZm8iLCJ1cm46bWljcm9zb2Z0OnJlcTEiLCJ1cm46bWljcm9zb2Z0OnJlcTIiLCJ1cm46bWljcm9zb2Z0OnJlcTMiLCJjMSIsImMyIiwiYzMiLCJjNCIsImM1IiwiYzYiLCJjNyIsImM4IiwiYzkiLCJjMTAiLCJjMTEiLCJjMTIiLCJjMTMiLCJjMTQiLCJjMTUiLCJjMTYiLCJjMTciLCJjMTgiLCJjMTkiLCJjMjAiLCJjMjEiLCJjMjIiLCJjMjMiLCJjMjQiLCJjMjUiXSwiYWlvIjoiRTJKZ1lGajl6N2J5aXRvRXJ5aC96bThuclA4NXg0cnNZRGhjN0hsSjdON0MwenVxV2dzQiIsImFtciI6WyJwd2QiXSwiYXBwX2Rpc3BsYXluYW1lIjoiZGlydHlmaWxtIGFwcCIsImFwcGlkIjoiZmJlMWZmZDEtOTNjYS00YWFmLWExMjEtNjU2ODQ5YjJjZmQzIiwiYXBwaWRhY3IiOiIxIiwiaWR0eXAiOiJ1c2VyIiwiaXBhZGRyIjoiNDIuMTE5LjYxLjE4MiIsIm5hbWUiOiJOZ3V5ZW4gSGFvIiwib2lkIjoiMjczN2NlNzEtZGRmYy00MWQyLTkwMjgtMDE4Y2U1NGExOGY0IiwicGxhdGYiOiI1IiwicHVpZCI6IjEwMDMyMDAxMDgxMTAzNkEiLCJyaCI6IjAuQUFBQXVwUTQtdndQUjBpdWxGRUJSdGZLbDlIXzRmdktrNjlLb1NGbGFFbXl6OU5KQUJFLiIsInNjcCI6IkZpbGVzLlJlYWRXcml0ZS5BbGwgb3BlbmlkIFVzZXIuUmVhZEJhc2ljLkFsbCBVc2VyLlJlYWRXcml0ZSBwcm9maWxlIGVtYWlsIiwic2lnbmluX3N0YXRlIjpbImttc2kiXSwic3ViIjoiRzkwcG5uUmJTM2U3MUV5MnpSUGctaldkV0lXbWxkelI4eV9mWm9MRkNVZyIsInRlbmFudF9yZWdpb25fc2NvcGUiOiJBUyIsInRpZCI6ImZhMzg5NGJhLTBmZmMtNDg0Ny1hZTk0LTUxMDE0NmQ3Y2E5NyIsInVuaXF1ZV9uYW1lIjoiZGF2aWRudGgxMjE3MUBtb2Qub2JhZ2cuY29tIiwidXBuIjoiZGF2aWRudGgxMjE3MUBtb2Qub2JhZ2cuY29tIiwidXRpIjoiLXVCMUxYcmh6RTJPOWV5NDZadUpBQSIsInZlciI6IjEuMCIsIndpZHMiOlsiYjc5ZmJmNGQtM2VmOS00Njg5LTgxNDMtNzZiMTk0ZTg1NTA5Il0sInhtc19zdCI6eyJzdWIiOiJiaXJUQWVfMGt1TllNYU03RU5Ib2JBdi1MVkJYUmtPUElYeE9KdlJWMGEwIn0sInhtc190Y2R0IjoxNTcxNDIxMDAzfQ.HNqqNFDzzTnkan8dSbD1Zw0O4DlmjPS7P5AD98Y6wtBRSNTGqSr1qGO-f6D9HyQPRnOkxoKJbJVTi1PesoG-BxZF1lpXd9s_Yc0pN5ckqPZnIXBsk4psg8zWrThuKTXQEcHdsDiq1MheZpxuT9763D3EmFIghTcbiyPtf3eTK3_nuTMxIKRlps4IGUUxb85pjqYeQ4f6_ikAt5hbL8l4SOMisTPtnYdyNnKW_poWMWEP158L90zDtXk6Tu5DC1P49zotmug6x8SYDkAhgeFGvXFJ_uCpBw-gLNvWs-FdGLLbXQILM_qNlRQpmeq0eofvUAVqgnA-UsjvPDXoqTxe5w",
-		// AccessToken:  "",
+		AccessToken:  AccessToken,
 		RefreshToken: RefreshToken,
 		Expiry:       time.Now().Add(time.Duration(viper.GetInt64("EXPIRY")) * time.Second),
 		TokenType:    TokenType,
@@ -84,7 +90,110 @@ func createAuths() {
 		ClientID:     ClientID,
 		ClientSecret: ClientSecret,
 		RedirectURL:  RedirectUrl,
-		Scopes:       []string{"Files.ReadWrite.All", "Sites.ReadWrite.All", "openid", "User.ReadBasic.All", "User.ReadWrite", "profile", "email"},
-		Endpoint:     microsoft.AzureADEndpoint(TenantID),
+		// Scopes:       []string{"Files.ReadWrite.All", "Sites.ReadWrite.All", "openid", "User.ReadBasic.All", "User.ReadWrite", "profile", "email"},
+		Scopes:   strings.Fields(Scope),
+		Endpoint: microsoft.AzureADEndpoint(TenantID),
 	}
+
+	//refresh Token
+	RefreshTokenFunc()
+}
+
+func LoadConfigFromJson(config *models.Config) {
+	ClientID = config.ClientID
+	ClientSecret = config.ClientSecret
+	AccessToken = config.AccessToken
+	Scope = config.Scope
+	if Scope == "" {
+		Scope = "Files.ReadWrite.All openid User.ReadBasic.All User.ReadWrite profile email"
+	}
+	RedirectUrl = config.RedirectUrl
+	TenantID = config.TenantID
+	RefreshToken = config.RefreshToken
+	Expiry = config.Expiry
+	if Expiry == 0 {
+		Expiry = 3599
+	}
+	TokenType = config.TokenType
+	if len(TokenType) == 0 {
+		TokenType = "Bearer"
+	}
+	UploadFolderPath = config.UploadFolderPath
+	if len(UploadFolderPath) == 0 {
+		UploadFolderPath = "/"
+	}
+	RefreshAPIEndPoint = config.RefreshAPIEndPoint
+	if len(RefreshAPIEndPoint) == 0 {
+		RefreshAPIEndPoint = "https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token"
+	}
+	UploadAPIEndPoint = config.UploadAPIEndPoint
+	if len(UploadAPIEndPoint) == 0 {
+		UploadAPIEndPoint = "https://graph.microsoft.com/v1.0/me/drive/root:{UPLOAD_FOLDER_PATH}/{FILE_NAME}:/createUploadSession"
+	}
+	ShareAPIEndPoint = config.ShareAPIEndPoint
+	if len(ShareAPIEndPoint) == 0 {
+		ShareAPIEndPoint = "https://graph.microsoft.com/v1.0/me/drive/items/{UPLOADED_FILE_ID}/createLink"
+	}
+	FragSize = config.FragSize
+	if FragSize == 0 {
+		FragSize = 62259200
+	}
+	ShareBodyJSON = config.ShareBodyJSON
+	if len(ShareBodyJSON) == 0 {
+		ShareBodyJSON = "{ \"type\": \"view\", \"scope\": \"anonymous\" }"
+	}
+	UploadBodyJSON = config.UploadBodyJSON
+	if len(UploadBodyJSON) == 0 {
+		UploadBodyJSON = "{\"item\":{\"@microsoft.graph.conflictBehavior\":\"rename\",\"name\":\"{FILE_NAME}\"}}"
+	}
+	GetItemsPathEndPoint = config.GetItemsPathEndPoint
+	if len(GetItemsPathEndPoint) == 0 {
+		GetItemsPathEndPoint = "https://graph.microsoft.com/v1.0/me/drive/root:{PATH}:/children"
+	}
+	createAuths()
+}
+
+func RefreshTokenFunc() {
+	if time.Now().After(ExpiredTime) {
+		url := strings.Replace(RefreshAPIEndPoint, "{TENANT_ID}", TenantID, 1)
+
+		payload := strings.NewReader("grant_type=refresh_token" +
+			"&client_id=" + ClientID +
+			"&client_secret=" + ClientSecret +
+			"&scope=" + Scope +
+			"&redirect_uri=" + RedirectUrl +
+			"&refresh_token=" + RefreshToken)
+
+		req, _ := http.NewRequest("POST", url, payload)
+
+		req.Header.Add("content-type", "application/x-www-form-urlencoded")
+
+		res, _ := http.DefaultClient.Do(req)
+
+		var jsonResult models.RefreshTokenResponse
+		err := json.NewDecoder(res.Body).Decode(&jsonResult)
+		if err != nil {
+			fmt.Println("Error: " + err.Error())
+			return
+		}
+		defer res.Body.Close()
+
+		if SavedToken != nil && jsonResult.AccessToken != SavedToken.AccessToken {
+			saveToken(&jsonResult)
+			fmt.Println("saved a new token")
+			ExpiredTime = time.Now().Add(3000 * time.Second)
+		} else {
+			fmt.Println("nothing changed")
+		}
+	}
+}
+
+func saveToken(tokenJSON *models.RefreshTokenResponse) {
+	// fmt.Println("AccessToken: " + tokenJSON.AccessToken)
+	SavedToken.AccessToken = tokenJSON.AccessToken
+	SavedToken.RefreshToken = tokenJSON.RefreshToken
+	SavedToken.TokenType = tokenJSON.TokenType
+	SavedToken.Expiry = time.Now().Add(3599 * time.Second)
+
+	//assign the new refreshTokenStartTime
 }
