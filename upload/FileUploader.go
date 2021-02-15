@@ -25,7 +25,7 @@ var (
 	uploadFinishedResponse models.UploadFinishedResponse
 )
 
-func ShareLinkFunc(uploadFinishedResponse *models.UploadFinishedResponse) {
+func ShareLinkFunc(uploadFinishedResponse *models.UploadFinishedResponse) *models.SharedLinkResponse {
 	config.RefreshTokenFunc()
 	if uploadFinishedResponse != nil && uploadFinishedResponse.Id != "" {
 		//share the item's link
@@ -36,26 +36,27 @@ func ShareLinkFunc(uploadFinishedResponse *models.UploadFinishedResponse) {
 
 		var sharedLinkResponse models.SharedLinkResponse
 		utils.HandleHttpRequestForUploading(httpRequest, &sharedLinkResponse)
-
 		if sharedLinkResponse.Link.WebUrl != "" {
 			fmt.Println("The file " + uploadFinishedResponse.Name + " (size: " + utils.GetReadableFileCapacity(fileSize) + ") has been shared via URL: " + sharedLinkResponse.Link.WebUrl + " for every one")
+			return &sharedLinkResponse
 		}
 	}
+	return nil
 }
 
-func UploadFile(localFilePath string) {
+func UploadFile(localFilePath string) (*models.UploadFinishedResponse, error) {
 	fileName := filepath.Base(localFilePath)
 
 	fi, err := os.Open(localFilePath)
 	fileBytes, err = ioutil.ReadFile(localFilePath)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	//get file size
 	fileData, err := fi.Stat()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	fileSize = fileData.Size()
 
@@ -79,7 +80,7 @@ func UploadFile(localFilePath string) {
 	client := &http.Client{}
 	resp, err := client.Do(uploadSessionRequest)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 
@@ -88,7 +89,7 @@ func UploadFile(localFilePath string) {
 	json.Unmarshal(body, &uploadJSONResult)
 	if uploadJSONResult.UploadUrl != "" {
 		var uploadFinishedResponse models.UploadFinishedResponse
-		fmt.Println("Uploading the file " + fileName + " into OneDrive...")
+		fmt.Println("Creating a session for Uploading the file " + fileName + " into OneDrive...")
 		for i := 0; i < blockSize; i++ {
 			isSuccess := false
 			numberOfAttempt := -1
@@ -139,9 +140,12 @@ func UploadFile(localFilePath string) {
 					fmt.Println("Download link: " + uploadFinishedResponse.DownloadUrl)
 
 					//create a link for everyone can access
-					ShareLinkFunc(&uploadFinishedResponse)
+					// ShareLinkFunc(uploadFinishedResponse)
+					return &uploadFinishedResponse, nil
 				}
 			}
 		}
 	}
+
+	return nil, nil
 }
