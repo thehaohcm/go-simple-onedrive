@@ -14,23 +14,33 @@ import (
 )
 
 var (
-	ClientID             string
-	ClientSecret         string
-	AccessToken          string
-	Scope                string
-	RedirectUrl          string
-	TenantID             string
-	RefreshToken         string
-	Expiry               int64
-	TokenType            string
-	UploadFolderPath     string
-	RefreshAPIEndPoint   string
-	UploadAPIEndPoint    string
-	ShareAPIEndPoint     string
-	FragSize             int
+	ClientID                string
+	ClientSecret            string
+	AccessToken             string
+	Scope                   string
+	RedirectUrl             string
+	TenantID                string
+	RefreshToken            string
+	Expiry                  int64
+	TokenType               string
+	UploadFolderPath        string
+	RefreshAPIEndPoint      string
+	UploadAPIEndPoint       string
+	ShareAPIEndPoint        string
+	CreateFolderAPIEndPoint string
+	FragSize                int
+	GetItemsPathEndPoint    string
+	GetItemAPIEndPoint      string
+	DeleteItemAPIEndPoint   string
+	MoveItemAPIEndPoint     string
+	CopyItemAPIEndPoint     string
+	DownloadItemAPIEndPoint string
+
 	ShareBodyJSON        string
 	UploadBodyJSON       string
-	GetItemsPathEndPoint string
+	CreateFolderBodyJSON string
+	MoveItemBodyJSON     string
+	CopyItemBodyJSON     string
 
 	ExpiredTime time.Time
 
@@ -69,10 +79,20 @@ func loadConfigVariables() {
 	RefreshAPIEndPoint = viper.GetString("REFESH_API_ENDPOINT")
 	UploadAPIEndPoint = viper.GetString("UPLOAD_API_ENDPOINT")
 	ShareAPIEndPoint = viper.GetString("SHARE_API_ENDPOINT")
+	CreateFolderAPIEndPoint = viper.GetString("CREATE_FOLDER_API_ENDPOINT")
+	GetItemsPathEndPoint = viper.GetString("GET_ITEMS_PATH_ENDPOINT")
+	GetItemAPIEndPoint = viper.GetString("GET_ITEM_API_ENDPOINT")
+	DeleteItemAPIEndPoint = viper.GetString("DELETE_ITEM_API_ENDPOINT")
+	MoveItemAPIEndPoint = viper.GetString("MOVE_ITEM_API_ENDPOINT")
+	CopyItemAPIEndPoint = viper.GetString("COPY_ITEM_API_ENDPOINT")
+	DownloadItemAPIEndPoint = viper.GetString("DOWNLOAD_ITEM_API_ENDPOINT")
+
 	FragSize = viper.GetInt("FRAG_SIZE")
 	ShareBodyJSON = viper.GetString("SHARE_BODY_JSON")
 	UploadBodyJSON = viper.GetString("UPLOAD_BODY_JSON")
-	GetItemsPathEndPoint = viper.GetString("GET_ITEMS_PATH_ENDPOINT")
+	CreateFolderBodyJSON = viper.GetString("CREATE_FOLDER_BODY_JSON")
+	MoveItemBodyJSON = viper.GetString("MOVE_ITEM_BODY_JSON")
+	CopyItemBodyJSON = viper.GetString("COPY_ITEM_BODY_JSON")
 
 	ExpiredTime = time.Now().Add(3000 * time.Second)
 }
@@ -134,6 +154,34 @@ func LoadConfigFromJson(config *models.Config) {
 	if len(ShareAPIEndPoint) == 0 {
 		ShareAPIEndPoint = "https://graph.microsoft.com/v1.0/me/drive/items/{UPLOADED_FILE_ID}/createLink"
 	}
+	CreateFolderAPIEndPoint = config.CreateFolderAPIEndPoint
+	if len(CreateFolderAPIEndPoint) == 0 {
+		CreateFolderAPIEndPoint = "https://graph.microsoft.com/v1.0/me/drive/items/{PARENT_FOLDER_ID}/children"
+	}
+	GetItemsPathEndPoint = config.GetItemsPathEndPoint
+	if len(GetItemsPathEndPoint) == 0 {
+		GetItemsPathEndPoint = "https://graph.microsoft.com/v1.0/me/drive/root:{PATH}:/children"
+	}
+	GetItemAPIEndPoint = config.GetItemAPIEndPoint
+	if len(GetItemAPIEndPoint) == 0 {
+		GetItemAPIEndPoint = "https://graph.microsoft.com/v1.0/me/drive/root:/{PATH}"
+	}
+	DeleteItemAPIEndPoint = config.DeleteItemAPIEndPoint
+	if len(DeleteItemAPIEndPoint) == 0 {
+		DeleteItemAPIEndPoint = "https://graph.microsoft.com/v1.0/me/drive/items/{ITEM_ID}"
+	}
+	MoveItemAPIEndPoint = config.MoveItemAPIEndPoint
+	if len(MoveItemAPIEndPoint) == 0 {
+		MoveItemAPIEndPoint = "https://graph.microsoft.com/v1.0/me/drive/items/{ITEM_ID}"
+	}
+	CopyItemAPIEndPoint = config.CopyItemAPIEndPoint
+	if len(CopyItemAPIEndPoint) == 0 {
+		CopyItemAPIEndPoint = "https://graph.microsoft.com/v1.0/me/drive/items/{ITEM_ID}/copy"
+	}
+	DownloadItemAPIEndPoint = config.DownloadItemAPIEndPoint
+	if len(DownloadItemAPIEndPoint) == 0 {
+		DownloadItemAPIEndPoint = "https://graph.microsoft.com/v1.0/me/drive/items/{ITEM_ID}/content"
+	}
 	FragSize = config.FragSize
 	if FragSize == 0 {
 		FragSize = 62259200
@@ -146,10 +194,19 @@ func LoadConfigFromJson(config *models.Config) {
 	if len(UploadBodyJSON) == 0 {
 		UploadBodyJSON = "{\"item\":{\"@microsoft.graph.conflictBehavior\":\"rename\",\"name\":\"{FILE_NAME}\"}}"
 	}
-	GetItemsPathEndPoint = config.GetItemsPathEndPoint
-	if len(GetItemsPathEndPoint) == 0 {
-		GetItemsPathEndPoint = "https://graph.microsoft.com/v1.0/me/drive/root:{PATH}:/children"
+	CreateFolderBodyJSON = config.CreateFolderBodyJSON
+	if len(CreateFolderBodyJSON) == 0 {
+		CreateFolderBodyJSON = "{\"name\": \"{FOLDER_NAME}\", \"folder\": {}, \"@microsoft.graph.conflictBehavior\": \"rename\" }"
 	}
+	MoveItemBodyJSON = config.MoveItemBodyJSON
+	if len(MoveItemBodyJSON) == 0 {
+		MoveItemBodyJSON = "{ \"parentReference\": { \"id\": \"{NEW_PARENT_FOLDER_ID}\" }, \"name\": \"{NEW_ITEM_NAME}\" }"
+	}
+	CopyItemBodyJSON = config.CopyItemBodyJSON
+	if len(CopyItemBodyJSON) == 0 {
+		CopyItemBodyJSON = "{ \"name\": \"{NEW_FILE_NAME}\" }"
+	}
+
 	createAuths()
 }
 

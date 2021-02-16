@@ -45,6 +45,7 @@ func ShareLinkFunc(uploadFinishedResponse *models.UploadFinishedResponse) *model
 }
 
 func UploadFile(localFilePath string) (*models.UploadFinishedResponse, error) {
+	config.RefreshTokenFunc()
 	fileName := filepath.Base(localFilePath)
 
 	fi, err := os.Open(localFilePath)
@@ -74,8 +75,6 @@ func UploadFile(localFilePath string) (*models.UploadFinishedResponse, error) {
 	uploadSessionRequest, _ := http.NewRequest("POST", sessionURL, bytes.NewBuffer(payload))
 	uploadSessionRequest.Header.Add("Content-Type", "application/json")
 	uploadSessionRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
-
-	config.RefreshTokenFunc()
 
 	client := &http.Client{}
 	resp, err := client.Do(uploadSessionRequest)
