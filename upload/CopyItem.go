@@ -2,7 +2,6 @@ package upload
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -26,7 +25,8 @@ func CopyItem(itemInfo *models.ItemInfo, newItemName string) bool {
 		panic(err)
 	}
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	//TODO: handle error message
+	// body, _ := ioutil.ReadAll(resp.Body)
 
 	if resp.StatusCode == 202 {
 		return true
