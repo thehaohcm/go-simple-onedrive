@@ -1,4 +1,4 @@
-package upload
+package service
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"github.com/thehaohcm/go-simple-onedrive/models"
 )
 
-func CopyItem(itemInfo *models.ItemInfo, newItemName string) bool {
+func CopyItem(itemInfo *models.ItemInfo, newItemName string) (bool, error) {
 	config.RefreshTokenFunc()
 
 	url := strings.Replace(config.CopyItemAPIEndPoint, "{ITEM_ID}", itemInfo.ID, 1)
@@ -29,13 +29,18 @@ func CopyItem(itemInfo *models.ItemInfo, newItemName string) bool {
 	// body, _ := ioutil.ReadAll(resp.Body)
 
 	if resp.StatusCode == 202 {
-		return true
+		return (true, nil)
 	}
 
-	return false
+	body, _ := ioutil.ReadAll(resp.Body)
+	var errorResponse *models.ErrorResponse
+	json.Unmarshal(body, &errorResponse)
+	err:=errors.New(errorResponse.Message)
+
+	return false,err
 }
 
-func CopyItemByPath(itemPath string, newFileName string) bool {
+func CopyItemByPath(itemPath string, newFileName string) (bool,error) {
 	item, err := GetItemByPath(itemPath)
 	if err != nil {
 		panic(err)

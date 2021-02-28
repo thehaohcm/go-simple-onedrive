@@ -1,8 +1,9 @@
-package upload
+package service
 
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -28,11 +29,20 @@ func CreateFolder(newFolderName string, parentFolder *models.ItemInfo) (*models.
 		return nil, err
 	}
 
-	body, _ := ioutil.ReadAll(resp.Body)
-	var ItemInfo *models.ItemInfo
-	json.Unmarshal(body, &ItemInfo)
+	if resp.StatusCode == 201 {
+		body, _ := ioutil.ReadAll(resp.Body)
+		var ItemInfo *models.ItemInfo
+		json.Unmarshal(body, &ItemInfo)
 
-	return ItemInfo, nil
+		return ItemInfo, nil
+	}
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	var errorResponse *models.ErrorResponse
+	json.Unmarshal(body, &errorResponse)
+	err := errors.New(errorResponse.Message)
+
+	return nil, err
 }
 
 func CreateFolderForParentName(newFolderName string, parentFolderName string) {

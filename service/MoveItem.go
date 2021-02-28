@@ -1,7 +1,10 @@
-package upload
+package service
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -9,7 +12,7 @@ import (
 	"github.com/thehaohcm/go-simple-onedrive/models"
 )
 
-func MoveItem(itemInfo *models.ItemInfo, parentFolderInfo *models.ItemInfo, newItemName string) bool {
+func MoveItem(itemInfo *models.ItemInfo, parentFolderInfo *models.ItemInfo, newItemName string) (bool, error) {
 	config.RefreshTokenFunc()
 
 	url := strings.Replace(config.MoveItemAPIEndPoint, "{ITEM_ID}", itemInfo.ID, 1)
@@ -28,13 +31,18 @@ func MoveItem(itemInfo *models.ItemInfo, parentFolderInfo *models.ItemInfo, newI
 	}
 
 	if resp.StatusCode == 200 {
-		return true
+		return true, nil
 	}
 
-	return false
+	body, _ := ioutil.ReadAll(resp.Body)
+	var errorResponse *models.ErrorResponse
+	json.Unmarshal(body, &errorResponse)
+	err := errors.New(errorResponse.Message)
+
+	return false, err
 }
 
-func MoveItemByPathWithNewName(itemPath string, parentFolderPath string, newFileName string) bool {
+func MoveItemByPathWithNewName(itemPath string, parentFolderPath string, newFileName string) (bool, error) {
 	item, err := GetItemByPath(itemPath)
 	if err != nil {
 		panic(err)
@@ -52,6 +60,6 @@ func MoveItemByPathWithNewName(itemPath string, parentFolderPath string, newFile
 	return MoveItem(item, parentFolderItem, newFileName)
 }
 
-func MoveItemByPath(itemPath string, parentFolderPath string) bool {
+func MoveItemByPath(itemPath string, parentFolderPath string) (bool, error) {
 	return MoveItemByPathWithNewName(itemPath, parentFolderPath, "")
 }

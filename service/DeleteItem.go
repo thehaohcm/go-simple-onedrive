@@ -1,6 +1,9 @@
-package upload
+package service
 
 import (
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -8,7 +11,7 @@ import (
 	"github.com/thehaohcm/go-simple-onedrive/models"
 )
 
-func DeleteItem(itemInfo *models.ItemInfo) bool {
+func DeleteItem(itemInfo *models.ItemInfo) (bool, error) {
 	config.RefreshTokenFunc()
 
 	url := strings.Replace(config.DeleteItemAPIEndPoint, "{ITEM_ID}", itemInfo.ID, 1)
@@ -24,10 +27,15 @@ func DeleteItem(itemInfo *models.ItemInfo) bool {
 	}
 
 	if resp.StatusCode == 204 {
-		return true
+		return true, nil
 	}
 
-	return false
+	body, _ := ioutil.ReadAll(resp.Body)
+	var errorResponse *models.ErrorResponse
+	json.Unmarshal(body, &errorResponse)
+	err := errors.New(errorResponse.Message)
+
+	return false, err
 }
 
 func DeleteItemByPath(itemPath string) bool {

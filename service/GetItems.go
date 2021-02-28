@@ -1,7 +1,8 @@
-package upload
+package service
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -31,11 +32,20 @@ func GetChildItemsByPath(path string) ([]*models.ItemInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
-	var ItemsInfo *models.ItemsInfo
-	json.Unmarshal(body, &ItemsInfo)
+	if resp.StatusCode == 200 {
+		body, _ := ioutil.ReadAll(resp.Body)
+		var ItemsInfo *models.ItemsInfo
+		json.Unmarshal(body, &ItemsInfo)
 
-	return ItemsInfo.ItemInfos, nil
+		return ItemsInfo.ItemInfos, nil
+	}
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	var errorResponse *models.ErrorResponse
+	json.Unmarshal(body, &errorResponse)
+	err := errors.New(errorResponse.Message)
+
+	return nil, err
 }
 
 func GetItemByPath(path string) (*models.ItemInfo, error) {
@@ -53,9 +63,17 @@ func GetItemByPath(path string) (*models.ItemInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
-	var ItemInfo *models.ItemInfo
-	json.Unmarshal(body, &ItemInfo)
+	if resp.StatusCode == 200 {
+		body, _ := ioutil.ReadAll(resp.Body)
+		var ItemInfo *models.ItemInfo
+		json.Unmarshal(body, &ItemInfo)
 
-	return ItemInfo, nil
+		return ItemInfo, nil
+	}
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	var errorResponse *models.ErrorResponse
+	json.Unmarshal(body, &errorResponse)
+	err := errors.New(errorResponse.Message)
+	return nil, err
 }
