@@ -9,18 +9,17 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/models"
 )
 
-func CreateFolder(newFolderName string, parentFolder *models.ItemInfo) (*models.ItemInfo, error) {
-	config.RefreshTokenFunc()
+func (service *Service) CreateFolder(newFolderName string, parentFolder *models.ItemInfo) (*models.ItemInfo, error) {
+	RefreshTokenFunc(service)
 
-	url := strings.Replace(config.CreateFolderAPIEndPoint, "{PARENT_FOLDER_ID}", parentFolder.ID, 1)
-	var payload = []byte(strings.Replace(config.CreateFolderBodyJSON, "{FOLDER_NAME}", newFolderName, 1))
+	url := strings.Replace(service.CreateFolderAPIEndPoint, "{PARENT_FOLDER_ID}", parentFolder.ID, 1)
+	var payload = []byte(strings.Replace(service.CreateFolderBodyJSON, "{FOLDER_NAME}", newFolderName, 1))
 	createFolderRequest, _ := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	createFolderRequest.Header.Add("Content-Type", "application/json")
-	createFolderRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
+	createFolderRequest.Header.Add("Authorization", service.TokenType+" "+service.SavedToken.AccessToken)
 
 	client := &http.Client{}
 	resp, err := client.Do(createFolderRequest)
@@ -40,19 +39,19 @@ func CreateFolder(newFolderName string, parentFolder *models.ItemInfo) (*models.
 	body, _ := ioutil.ReadAll(resp.Body)
 	var errorResponse *models.ErrorResponse
 	json.Unmarshal(body, &errorResponse)
-	err := errors.New(errorResponse.Message)
+	err = errors.New(errorResponse.Message)
 
 	return nil, err
 }
 
-func CreateFolderForParentName(newFolderName string, parentFolderName string) {
-	parentFolderItem, err := GetItemByPath("/" + parentFolderName)
+func (service *Service) CreateFolderForParentName(newFolderName string, parentFolderName string) {
+	parentFolderItem, err := service.GetItemByPath("/" + parentFolderName)
 	if err != nil {
 		panic(err)
 	}
 
 	if parentFolderItem != nil {
-		newFolder, err := CreateFolder(newFolderName, parentFolderItem)
+		newFolder, err := service.CreateFolder(newFolderName, parentFolderItem)
 		if err != nil {
 			panic(err)
 		}

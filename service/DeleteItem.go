@@ -7,17 +7,16 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/models"
 )
 
-func DeleteItem(itemInfo *models.ItemInfo) (bool, error) {
-	config.RefreshTokenFunc()
+func (service *Service) DeleteItem(itemInfo *models.ItemInfo) (bool, error) {
+	RefreshTokenFunc(service)
 
-	url := strings.Replace(config.DeleteItemAPIEndPoint, "{ITEM_ID}", itemInfo.ID, 1)
+	url := strings.Replace(service.DeleteItemAPIEndPoint, "{ITEM_ID}", itemInfo.ID, 1)
 	deleteItemRequest, _ := http.NewRequest("DELETE", url, nil)
 	deleteItemRequest.Header.Add("Content-Type", "application/json")
-	deleteItemRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
+	deleteItemRequest.Header.Add("Authorization", service.TokenType+" "+service.SavedToken.AccessToken)
 
 	client := &http.Client{}
 	resp, err := client.Do(deleteItemRequest)
@@ -33,21 +32,16 @@ func DeleteItem(itemInfo *models.ItemInfo) (bool, error) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	var errorResponse *models.ErrorResponse
 	json.Unmarshal(body, &errorResponse)
-	err := errors.New(errorResponse.Message)
+	err = errors.New(errorResponse.Message)
 
 	return false, err
 }
 
-func DeleteItemByPath(itemPath string) bool {
-	item, err := GetItemByPath(itemPath)
+func (service *Service) DeleteItemByPath(itemPath string) (bool, error) {
+	item, err := service.GetItemByPath(itemPath)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 
-	if item != nil {
-		if DeleteItem(item) {
-			return true
-		}
-	}
-	return false
+	return service.DeleteItem(item)
 }

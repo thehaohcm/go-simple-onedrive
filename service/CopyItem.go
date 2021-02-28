@@ -2,21 +2,23 @@ package service
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
-	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/models"
 )
 
-func CopyItem(itemInfo *models.ItemInfo, newItemName string) (bool, error) {
-	config.RefreshTokenFunc()
+func (service *Service) CopyItem(itemInfo *models.ItemInfo, newItemName string) (bool, error) {
+	RefreshTokenFunc(service)
 
-	url := strings.Replace(config.CopyItemAPIEndPoint, "{ITEM_ID}", itemInfo.ID, 1)
-	var payload = []byte(strings.Replace(config.CopyItemBodyJSON, "{NEW_FILE_NAME}", newItemName, 1))
+	url := strings.Replace(service.CopyItemAPIEndPoint, "{ITEM_ID}", itemInfo.ID, 1)
+	var payload = []byte(strings.Replace(service.CopyItemBodyJSON, "{NEW_FILE_NAME}", newItemName, 1))
 	copyItemRequest, _ := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	copyItemRequest.Header.Add("Content-Type", "application/json")
-	copyItemRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
+	copyItemRequest.Header.Add("Authorization", service.TokenType+" "+service.SavedToken.AccessToken)
 
 	client := &http.Client{}
 	resp, err := client.Do(copyItemRequest)
@@ -29,19 +31,19 @@ func CopyItem(itemInfo *models.ItemInfo, newItemName string) (bool, error) {
 	// body, _ := ioutil.ReadAll(resp.Body)
 
 	if resp.StatusCode == 202 {
-		return (true, nil)
+		return true, nil
 	}
 
 	body, _ := ioutil.ReadAll(resp.Body)
 	var errorResponse *models.ErrorResponse
 	json.Unmarshal(body, &errorResponse)
-	err:=errors.New(errorResponse.Message)
+	err = errors.New(errorResponse.Message)
 
-	return false,err
+	return false, err
 }
 
-func CopyItemByPath(itemPath string, newFileName string) (bool,error) {
-	item, err := GetItemByPath(itemPath)
+func (service *Service) CopyItemByPath(itemPath string, newFileName string) (bool, error) {
+	item, err := service.GetItemByPath(itemPath)
 	if err != nil {
 		panic(err)
 	}
@@ -50,5 +52,5 @@ func CopyItemByPath(itemPath string, newFileName string) (bool,error) {
 		newFileName = item.Name
 	}
 
-	return CopyItem(item, newFileName)
+	return service.CopyItem(item, newFileName)
 }

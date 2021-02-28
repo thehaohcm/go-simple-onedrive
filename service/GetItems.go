@@ -7,23 +7,22 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/models"
 )
 
-func GetChildItemsByPath(path string) ([]*models.ItemInfo, error) {
-	config.RefreshTokenFunc()
+func (service *Service) GetChildItemsByPath(path string) ([]*models.ItemInfo, error) {
+	RefreshTokenFunc(service)
 
 	var url string
 	if path == "" || path == "/" {
 		//treat the root path as a special url
-		url = strings.Replace(config.GetItemsPathEndPoint, ":{PATH}:", "", 1)
+		url = strings.Replace(service.GetItemsPathEndPoint, ":{PATH}:", "", 1)
 	} else {
-		url = strings.Replace(config.GetItemsPathEndPoint, "{PATH}", path, 1)
+		url = strings.Replace(service.GetItemsPathEndPoint, "{PATH}", path, 1)
 	}
 	getItemsRequest, _ := http.NewRequest("GET", url, nil)
 	getItemsRequest.Header.Add("Content-Type", "application/json")
-	getItemsRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
+	getItemsRequest.Header.Add("Authorization", service.TokenType+" "+service.SavedToken.AccessToken)
 
 	client := &http.Client{}
 	resp, err := client.Do(getItemsRequest)
@@ -43,18 +42,18 @@ func GetChildItemsByPath(path string) ([]*models.ItemInfo, error) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	var errorResponse *models.ErrorResponse
 	json.Unmarshal(body, &errorResponse)
-	err := errors.New(errorResponse.Message)
+	err = errors.New(errorResponse.Message)
 
 	return nil, err
 }
 
-func GetItemByPath(path string) (*models.ItemInfo, error) {
-	config.RefreshTokenFunc()
+func (service *Service) GetItemByPath(path string) (*models.ItemInfo, error) {
+	RefreshTokenFunc(service)
 
-	url := strings.Replace(config.GetItemAPIEndPoint, "{PATH}", path, 1)
+	url := strings.Replace(service.GetItemAPIEndPoint, "{PATH}", path, 1)
 	getItemRequest, _ := http.NewRequest("GET", url, nil)
 	getItemRequest.Header.Add("Content-Type", "application/json")
-	getItemRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
+	getItemRequest.Header.Add("Authorization", service.TokenType+" "+service.SavedToken.AccessToken)
 
 	client := &http.Client{}
 	resp, err := client.Do(getItemRequest)
@@ -74,6 +73,6 @@ func GetItemByPath(path string) (*models.ItemInfo, error) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	var errorResponse *models.ErrorResponse
 	json.Unmarshal(body, &errorResponse)
-	err := errors.New(errorResponse.Message)
+	err = errors.New(errorResponse.Message)
 	return nil, err
 }

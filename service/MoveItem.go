@@ -8,20 +8,19 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/models"
 )
 
-func MoveItem(itemInfo *models.ItemInfo, parentFolderInfo *models.ItemInfo, newItemName string) (bool, error) {
-	config.RefreshTokenFunc()
+func (service *Service) MoveItem(itemInfo *models.ItemInfo, parentFolderInfo *models.ItemInfo, newItemName string) (bool, error) {
+	RefreshTokenFunc(service)
 
-	url := strings.Replace(config.MoveItemAPIEndPoint, "{ITEM_ID}", itemInfo.ID, 1)
-	reqBody := strings.Replace(config.MoveItemBodyJSON, "{NEW_PARENT_FOLDER_ID}", parentFolderInfo.ID, 1)
+	url := strings.Replace(service.MoveItemAPIEndPoint, "{ITEM_ID}", itemInfo.ID, 1)
+	reqBody := strings.Replace(service.MoveItemBodyJSON, "{NEW_PARENT_FOLDER_ID}", parentFolderInfo.ID, 1)
 	reqBody = strings.Replace(reqBody, "{NEW_ITEM_NAME}", newItemName, 1)
 	var payload = []byte(reqBody)
 	moveItemRequest, _ := http.NewRequest("PATCH", url, bytes.NewBuffer(payload))
 	moveItemRequest.Header.Add("Content-Type", "application/json")
-	moveItemRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
+	moveItemRequest.Header.Add("Authorization", service.TokenType+" "+service.SavedToken.AccessToken)
 
 	client := &http.Client{}
 	resp, err := client.Do(moveItemRequest)
@@ -37,18 +36,18 @@ func MoveItem(itemInfo *models.ItemInfo, parentFolderInfo *models.ItemInfo, newI
 	body, _ := ioutil.ReadAll(resp.Body)
 	var errorResponse *models.ErrorResponse
 	json.Unmarshal(body, &errorResponse)
-	err := errors.New(errorResponse.Message)
+	err = errors.New(errorResponse.Message)
 
 	return false, err
 }
 
-func MoveItemByPathWithNewName(itemPath string, parentFolderPath string, newFileName string) (bool, error) {
-	item, err := GetItemByPath(itemPath)
+func (service *Service) MoveItemByPathWithNewName(itemPath string, parentFolderPath string, newFileName string) (bool, error) {
+	item, err := service.GetItemByPath(itemPath)
 	if err != nil {
 		panic(err)
 	}
 
-	parentFolderItem, err := GetItemByPath(parentFolderPath)
+	parentFolderItem, err := service.GetItemByPath(parentFolderPath)
 	if err != nil {
 		panic(err)
 	}
@@ -57,9 +56,9 @@ func MoveItemByPathWithNewName(itemPath string, parentFolderPath string, newFile
 		newFileName = item.Name
 	}
 
-	return MoveItem(item, parentFolderItem, newFileName)
+	return service.MoveItem(item, parentFolderItem, newFileName)
 }
 
-func MoveItemByPath(itemPath string, parentFolderPath string) (bool, error) {
-	return MoveItemByPathWithNewName(itemPath, parentFolderPath, "")
+func (service *Service) MoveItemByPath(itemPath string, parentFolderPath string) (bool, error) {
+	return service.MoveItemByPathWithNewName(itemPath, parentFolderPath, "")
 }

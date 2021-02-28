@@ -1,4 +1,4 @@
-package utils
+package service
 
 import (
 	"bytes"
@@ -6,17 +6,16 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/models"
 )
 
-func HandleHttpRequestForUploading(httpRequest *models.HttpRequest, response interface{}) {
+func HandleHttpRequestForUploading(service *Service, httpRequest *models.HttpRequest, response interface{}) {
 	bodyBytes := bytes.NewBuffer([]byte(httpRequest.Body))
 	request, _ := http.NewRequest(string(httpRequest.HttpMethod), httpRequest.Url, bodyBytes)
 	for _, header := range httpRequest.Headers {
 		request.Header.Add(header.Key, header.Value)
 	}
-	request.Header.Add("Authorization", "Bearer "+config.SavedToken.AccessToken)
+	request.Header.Add("Authorization", "Bearer "+service.SavedToken.AccessToken)
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(request)
 	if err != nil {

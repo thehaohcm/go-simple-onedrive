@@ -1,21 +1,20 @@
-package servicee
+package service
 
 import (
 	"errors"
 	"net/http"
 	"strings"
 
-	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/models"
 )
 
-func GetDownloadLinkItem(itemInfo *models.ItemInfo) (string, error) {
-	config.RefreshTokenFunc()
+func (service *Service) GetDownloadLinkItem(itemInfo *models.ItemInfo) (string, error) {
+	RefreshTokenFunc(service)
 
-	url := strings.Replace(config.DownloadItemAPIEndPoint, "{ITEM_ID}", itemInfo.ID, 1)
+	url := strings.Replace(service.DownloadItemAPIEndPoint, "{ITEM_ID}", itemInfo.ID, 1)
 	downloadItemRequest, _ := http.NewRequest("GET", url, nil)
 	downloadItemRequest.Header.Add("Content-Type", "application/json")
-	downloadItemRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
+	downloadItemRequest.Header.Add("Authorization", service.TokenType+" "+service.SavedToken.AccessToken)
 
 	client := &http.Client{}
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
@@ -39,14 +38,14 @@ func GetDownloadLinkItem(itemInfo *models.ItemInfo) (string, error) {
 	return downloadLink, nil
 }
 
-func GetDownloadLinkItemByPath(itemPath string) (string, error) {
-	item, err := GetItemByPath(itemPath)
+func (service *Service) GetDownloadLinkItemByPath(itemPath string) (string, error) {
+	item, err := service.GetItemByPath(itemPath)
 	if err != nil {
 		return "", err
 	}
 
 	if item != nil {
-		return GetDownloadLinkItem(item)
+		return service.GetDownloadLinkItem(item)
 	}
 	return "", nil
 }

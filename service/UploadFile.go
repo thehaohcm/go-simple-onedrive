@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thehaohcm/go-simple-onedrive/config"
 	"github.com/thehaohcm/go-simple-onedrive/enums"
 	"github.com/thehaohcm/go-simple-onedrive/models"
 	"github.com/thehaohcm/go-simple-onedrive/utils"
@@ -25,17 +24,17 @@ var (
 	uploadFinishedResponse models.UploadFinishedResponse
 )
 
-func ShareLinkFunc(uploadFinishedResponse *models.UploadFinishedResponse) *models.SharedLinkResponse {
-	config.RefreshTokenFunc()
+func (service *Service) ShareLinkFunc(uploadFinishedResponse *models.UploadFinishedResponse) *models.SharedLinkResponse {
+	RefreshTokenFunc(service)
 	if uploadFinishedResponse != nil && uploadFinishedResponse.Id != "" {
 		//share the item's link
-		sharedLinkAPIEndpoint := strings.Replace(config.ShareAPIEndPoint, "{UPLOADED_FILE_ID}", uploadFinishedResponse.Id, 1)
+		sharedLinkAPIEndpoint := strings.Replace(service.ShareAPIEndPoint, "{UPLOADED_FILE_ID}", uploadFinishedResponse.Id, 1)
 		var httpHeaders [](*models.HttpHeader)
 		httpHeaders = append(httpHeaders, models.InitHttpHeader("Content-Type", "application/json"))
-		httpRequest := models.InitHttpRequest(enums.POST, sharedLinkAPIEndpoint, config.ShareBodyJSON, httpHeaders)
+		httpRequest := models.InitHttpRequest(enums.POST, sharedLinkAPIEndpoint, service.ShareBodyJSON, httpHeaders)
 
 		var sharedLinkResponse models.SharedLinkResponse
-		utils.HandleHttpRequestForUploading(httpRequest, &sharedLinkResponse)
+		HandleHttpRequestForUploading(service, httpRequest, &sharedLinkResponse)
 		if sharedLinkResponse.Link.WebUrl != "" {
 			fmt.Println("The file " + uploadFinishedResponse.Name + " (size: " + utils.GetReadableFileCapacity(fileSize) + ") has been shared via URL: " + sharedLinkResponse.Link.WebUrl + " for every one")
 			return &sharedLinkResponse
@@ -44,8 +43,8 @@ func ShareLinkFunc(uploadFinishedResponse *models.UploadFinishedResponse) *model
 	return nil
 }
 
-func UploadFile(localFilePath string) (*models.UploadFinishedResponse, error) {
-	config.RefreshTokenFunc()
+func (service *Service) UploadFile(localFilePath string) (*models.UploadFinishedResponse, error) {
+	RefreshTokenFunc(service)
 	fileName := filepath.Base(localFilePath)
 
 	fi, err := os.Open(localFilePath)
@@ -63,18 +62,18 @@ func UploadFile(localFilePath string) (*models.UploadFinishedResponse, error) {
 
 	// read file into bytes
 	blockSize = 1
-	if int(fileSize) > config.FragSize {
-		blockSize = (int(fileSize) + config.FragSize - 1) / config.FragSize
+	if int(fileSize) > service.FragSize {
+		blockSize = (int(fileSize) + service.FragSize - 1) / service.FragSize
 	}
 
-	sessionURL := strings.Replace(config.UploadAPIEndPoint, "{UPLOAD_FOLDER_PATH}", config.UploadFolderPath, 1)
+	sessionURL := strings.Replace(service.UploadAPIEndPoint, "{UPLOAD_FOLDER_PATH}", service.UploadFolderPath, 1)
 	sessionURL = strings.Replace(sessionURL, "{FILE_NAME}", fileName, 1)
 	//Create an Upload Session
-	// fmt.Println("Creating an Uploading Session, with token: " + config.SavedToken.AccessToken)
-	var payload = []byte(strings.Replace(config.UploadBodyJSON, "{FILE_NAME}", fileName, 1))
+	// fmt.Println("Creating an Uploading Session, with token: " + service.SavedToken.AccessToken)
+	var payload = []byte(strings.Replace(service.UploadBodyJSON, "{FILE_NAME}", fileName, 1))
 	uploadSessionRequest, _ := http.NewRequest("POST", sessionURL, bytes.NewBuffer(payload))
 	uploadSessionRequest.Header.Add("Content-Type", "application/json")
-	uploadSessionRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
+	uploadSessionRequest.Header.Add("Authorization", service.TokenType+" "+service.SavedToken.AccessToken)
 
 	client := &http.Client{}
 	resp, err := client.Do(uploadSessionRequest)
@@ -101,23 +100,23 @@ func UploadFile(localFilePath string) (*models.UploadFinishedResponse, error) {
 				}
 
 				//refresh token if it is over time
-				if time.Now().After(config.ExpiredTime) || numberOfAttempt > 0 {
+				if time.Now().After(service.ExpiredTime) || numberOfAttempt > 0 {
 					fmt.Println("The Token is expired, refreshing...")
-					config.RefreshTokenFunc()
+					RefreshTokenFunc(service)
 				}
 
 				isSuccess = true
 				var byteBlock []byte
-				byteBlock = fileBytes[(i * config.FragSize):]
-				param := "bytes " + strconv.Itoa(i*config.FragSize) + "-" + strconv.FormatInt(fileSize-1, 10) + "/" + strconv.FormatInt(fileSize, 10)
+				byteBlock = fileBytes[(i * service.FragSize):]
+				param := "bytes " + strconv.Itoa(i*service.FragSize) + "-" + strconv.FormatInt(fileSize-1, 10) + "/" + strconv.FormatInt(fileSize, 10)
 				if i < blockSize-1 {
-					byteBlock = fileBytes[(i * config.FragSize):(i*config.FragSize + config.FragSize)]
-					param = "bytes " + strconv.Itoa(i*config.FragSize) + "-" + strconv.Itoa(i*config.FragSize+config.FragSize-1) + "/" + strconv.FormatInt(fileSize, 10)
+					byteBlock = fileBytes[(i * service.FragSize):(i*service.FragSize + service.FragSize)]
+					param = "bytes " + strconv.Itoa(i*service.FragSize) + "-" + strconv.Itoa(i*service.FragSize+service.FragSize-1) + "/" + strconv.FormatInt(fileSize, 10)
 				}
 				sizeByteBlock := len(byteBlock)
 				uploadBlockFileRequest, _ := http.NewRequest("PUT", uploadJSONResult.UploadUrl, bytes.NewBuffer(byteBlock))
 				uploadBlockFileRequest.Header.Add("Content-Length", strconv.Itoa(sizeByteBlock))
-				uploadBlockFileRequest.Header.Add("Authorization", config.TokenType+" "+config.SavedToken.AccessToken)
+				uploadBlockFileRequest.Header.Add("Authorization", service.TokenType+" "+service.SavedToken.AccessToken)
 				uploadBlockFileRequest.Header.Add("Content-Range", param)
 
 				client := &http.Client{}
